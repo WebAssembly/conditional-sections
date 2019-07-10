@@ -1,5 +1,13 @@
 [![Build Status](https://travis-ci.org/WebAssembly/spec.svg?branch=master)](https://travis-ci.org/WebAssembly/spec)
 
+# Feature Detection Proposal for WebAssembly
+
+This repository is a clone github.com/WebAssembly/spec. It is meant for discussion, prototype specification and implementation of a proposal to add a feature detection mechanism to WebAssembly.
+
+ - See the [overview](proposals/feature-detection/Overview.md) for a summary of the proposal.
+
+The following is the original `README` from spec repo.
+
 # spec
 
 This repository holds the sources for the WebAssembly draft specification
