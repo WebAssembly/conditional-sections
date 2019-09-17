@@ -96,13 +96,12 @@ contents of each individual DataCount section.
 ### Conditional Sections
 
 New *conditional sections* are introduced to wrap other sections. Conditional
-sections contain a *predicate* and binary *contents*. The contents of a
-conditional section are skipped entirely during binary decoding unless the
-features supplied by the host satisfy the conditional section's predicate. If
-the predicate is satisfied, however, the binary contents are decoded and
-validated as a section. A conditional section inside a conditional section with
-a satisfied predicate will lead to a validation error because the inner
-conditional section will not be resolved during decoding.
+sections contain a *predicate* and binary *contents*. In order to maximize
+future compatibility, the contents of a conditional section are skipped entirely
+during binary decoding unless the features supplied by the host satisfy the
+conditional section's predicate. If the predicate is satisfied, however, the
+binary contents are decoded as a section. A conditional section is malformed if
+its predicate is satisfied and it contains another conditional section.
 
 Format of a conditional section:
 
