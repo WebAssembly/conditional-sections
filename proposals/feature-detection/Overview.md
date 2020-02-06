@@ -1,4 +1,4 @@
-# Feature Detection
+# Conditional Sections
 
 ## Introduction
 
@@ -14,7 +14,7 @@ different feature sets.
 
 Unlike in native contexts, WebAssembly's validation rules make it impossible to
 instantiate a module that uses new features on an engine that does not support
-them even if those new features are not used at runtime. Supporting multiple
+them, even if those new features are not used at runtime. Supporting multiple
 feature sets today therefore means building multiple separate modules and
 determining out of band which to serve to each user. In a web context, this
 usually means performing feature detection by instantiating multiple hardcoded
@@ -43,25 +43,29 @@ Additional principles motivate the design of this proposal:
  - Modules should be able to support multiple overlapping feature sets with
    minimal code duplication or bloat.
  - It is an explicit non-goal to allow multiversioned modules to validate on
-   engines that do not support this feature detection proposal. Although it
-   would be possible to achieve this goal, it would incur extra complexity that
-   would become technical specification debt in a future where all engines
-   support this proposal anyway.
- - It is an explicit non-goal to support additional functionality that could in
-   principle be supported by a more general feature detection proposal,
-   e.g. optional imports.
+   engines that do not support this proposal. Although it would be possible to
+   achieve this goal, it would incur extra complexity that would become
+   technical specification debt in a future where all engines support this
+   proposal anyway. See
+   [#5](https://github.com/WebAssembly/conditional-sections/issues/5).
+ - No feature strings should be blessed by the spec. Instead, a general
+   mechanism for turning binary module contents on and off should be provided
+   that toolchains can use to provide feature detection.
 
 ## Design
 
-There are two parts to this design. First, the binary format is extended to
-allow many section types to appear multiple times. Second, a new type of
-conditional section is introduced that can wrap any other section except
-itself. During binary decoding, the contents of conditional sections are decoded
-into a section only if the feature set provided by the hosts satisfies a
-predicate encoded in the conditional section. Otherwise the conditional section
-is skipped entirely during decoding. Together, these two extensions provide a
-mechanism for providing alternate module contents for different feature sets
-while minimizing duplication of common contents.
+There are three parts to this design. First, the binary format is extended to
+allow section types to appear multiple times. Second, a new type of conditional
+section is introduced that can wrap any other section except itself. And third,
+module compilation is extended to take a set of feature strings as an
+argument. During binary decoding, the contents of each conditional section are
+decoded into a section only if the set of feature strings supplied to
+compilation satisfies a predicate encoded in the conditional section. Otherwise,
+the conditional section is skipped entirely during decoding. Together, these
+extensions provide a mechanism for providing alternate module contents for
+different feature sets while minimizing duplication of common contents.
+
+### Repeated Sections
 
 The following sections currently contain vectors, so the binary format is
 extended to allow these sections to appear multiple times, with their vector
@@ -83,12 +87,17 @@ The start section does not contain a vector, but the `start` component of the
 module structure is updated to be a `vec(funcidx)` rather than a `funcidx`. The
 vector is comprised of the individual start functions from each start section in
 the binary module. The start functions are executed sequentially during
-instantiation.
+instantiation in order of their appearance.
 
 The other section that does not contain a vector is the [DataCount
 section][DataCount], introduced in the bulk memory proposal. For the purposes of
 validating the code section, the data count is taken to be the sum of the
 contents of each individual DataCount section.
+
+Although each section is allowed to appear multiple times, their ordering
+constraints are unchanged. The only kinds of sections allowed to appear between
+two sections of the same kind are more sections of the same kind and custom
+sections.
 
 [Event]: https://github.com/WebAssembly/exception-handling/blob/master/proposals/Exceptions.md#event-section
 [DataCount]: https://github.com/WebAssembly/bulk-memory-operations/blob/master/proposals/bulk-memory-operations/Overview.md#datacount-section
@@ -126,9 +135,10 @@ Format of a `feature`:
 Predicates are in disjunctive normal form, so they are satisfied if any of their
 component `feature_set`s are satisfied. A `feature_set` is satisfied if all of
 its component `feature`s are satisfied. A `feature` is satisfied if its
-`negated` field is 0 and the host supplies the feature or if its `negated` field
-is 1 and the host does not supply the feature. A `feature` is malformed if its
-`negated` field has any value besides 0 or 1.
+`negated` field is 0 and its name is in the feature set supplied to compilation
+or if its `negated` field is 1 and its name is not in the feature set supplied
+to compilation. A `feature` is malformed if its `negated` field has any value
+besides 0 or 1.
 
 [name]: https://webassembly.github.io/spec/core/binary/values.html#names
 
@@ -187,18 +197,10 @@ following sequence of sections:
 
 ## Open questions
 
- - Is there any reason to allow (or not allow) conditional data or element segments?
- - Should the proposal support gracefully degrading to MVP?
-   - This would require the additional ability to override function bodies, not
-     just conditionally include one or the other.
-   - Also the ability to override segment types
-   - Also conditional sections would have to be identified separately
-   - Would be more immediately useful, not useful in long term
- - By what mechanism should features be identified? Should nonstandard
-   extensions be allowed (e.g. for signaling the presence of system interfaces)?
- - How should feature names be standardized?
- - Is "feature detection" the best name for this feature? Should it be something
-   like "conditional sections" instead?
+ - Should new sections analogous to the data count section be introduced to
+   forward-declare the concatenated sizes of other sections?
+   [#10](https://github.com/WebAssembly/conditional-sections/issues/10).
+ - Is there any reason to disallow repetition of any sections?
  - How does this integrate with dynamic linking and relocation application?
  - How should conditional items be reflected in the text format?
  - Should feature sets be defined in their own section instead of repeated in
