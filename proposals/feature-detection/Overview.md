@@ -76,8 +76,8 @@ contents being concatenated in the order of their appearance.
  - Function section
  - Table section
  - Memory section
- - Global section
  - [Event section][Event] (introduced by exception handling)
+ - Global section
  - Export section
  - Element section
  - Code section
