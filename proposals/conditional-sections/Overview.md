@@ -195,6 +195,21 @@ following sequence of sections:
 | `b.foo`          | `(foo /\ ~bar)` |
 | `b.mvp`          | `(~foo)`        |
 
+## Frequently Asked Questions
+
+### Why not have conditional sections be switch-like with a default?
+
+On their surface, switch-like conditional sections seem like they would make it
+easy to ensure that only one of multiple alternatives is chosen for each
+possible feature set and that there is a default alternative. They also might be
+simpler to emit for producers that want to ensure these properties. However,
+consumers like optimizers, linkers, and bundlers would not be able to assume
+these properties. Switch-like conditional sections could be used to emulate the
+proposed independent conditional sections by having just a single chunk of
+contents and an empty default. Since consumers do not actually get more
+guarantees from the higher-level switch structure, we opted to go with the
+simpler, lower-level independent structure.
+
 ## Open questions
 
  - Should new sections analogous to the data count section be introduced to
