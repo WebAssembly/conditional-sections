@@ -4,7 +4,7 @@
 
 This repository is a clone github.com/WebAssembly/spec. It is meant for discussion, prototype specification and implementation of a proposal to add a feature detection mechanism to WebAssembly.
 
- - See the [overview](proposals/feature-detection/Overview.md) for a summary of the proposal.
+ - See the [overview](proposals/conditional-sections/Overview.md) for a summary of the proposal.
 
 The following is the original `README` from spec repo.
 
